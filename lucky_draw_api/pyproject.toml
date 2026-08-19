@@ -1,0 +1,39 @@
+[project]
+name = "lucky-draw-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "falahyan", email = "iyanflx24@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "sqlalchemy>=2.0.32",
+    "aiomysql>=0.2.0",
+    "alembic>=1.13.2",
+    "pydantic-settings>=2.4.0",
+    "cryptography>=43.0.0",
+    "greenlet>=3.0.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+    "aiofiles>=23.2.1",
+    "aiosqlite>=0.20.0",
+    "pyright>=1.1.411",
+    "aioboto3>=15.5.0",
+    "redis>=8.1.0",
+    "aio-pika>=10.0.1",
+]
+
+[project.scripts]
+# lucky-draw-api = "lucky_draw_api:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "types-aiofiles>=25.1.0.20260518",
+]

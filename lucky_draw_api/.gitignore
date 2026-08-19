@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+#generative ai
+docs
+
+#cache
+.pytest_cache/
+.ropeproject
+
+.DS_Store
+uploads/
+.env
