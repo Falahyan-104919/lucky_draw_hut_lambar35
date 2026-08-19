@@ -3,11 +3,11 @@ name: lucky-draw-prod
 services:
   # --- 1. FastAPI (API Gateway) ---
   api:
-    build: 
+    build:
       context: ./lucky_draw_api
     restart: always
     ports:
-      - "127.0.0.1:3026:3026" # Bind to localhost so Nginx handles the public traffic
+      - "3026:3026" # Bind to localhost so Nginx handles the public traffic
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
@@ -17,7 +17,7 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET=lucky-draw-uploads
       # CRITICAL: This must be the public domain Nginx gives to MinIO
-      - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT} 
+      - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT}
     depends_on:
       - redis
       - rabbitmq
@@ -27,7 +27,7 @@ services:
 
   # --- 2. Database Worker (Scalable) ---
   worker:
-    build: 
+    build:
       context: ./lucky_draw_api
     restart: always
     # Run the worker using the built image's environment
@@ -47,8 +47,8 @@ services:
     image: minio/minio
     restart: always
     ports:
-      - "127.0.0.1:9000:9000" # S3 API (Proxied by Nginx)
-      - "127.0.0.1:9001:9001" # Web Console (Proxied by Nginx)
+      - "9000:9000" # S3 API (Proxied by Nginx)
+      - "9001:9001" # Web Console (Proxied by Nginx)
     environment:
       - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
       - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
