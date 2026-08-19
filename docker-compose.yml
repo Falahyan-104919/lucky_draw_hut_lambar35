@@ -1,127 +1,85 @@
-name: lucky-draw-stack
+name: lucky-draw-prod
 
 services:
-  # ------------------------------------
-  # 1. FastAPI Backend
-  # ------------------------------------
+  # --- 1. FastAPI (API Gateway) ---
   api:
-    build:
+    build: 
       context: ./lucky_draw_api
-      dockerfile: Dockerfile
-    container_name: lucky_draw_api
-    restart: unless-stopped
+    restart: always
     ports:
-      - "3026:3026"
-    volumes:
-      - ./lucky_draw_api:/app
+      - "127.0.0.1:3026:3026" # Bind to localhost so Nginx handles the public traffic
     environment:
-      # host.docker.internal allows the container to connect to the MySQL running on your local machine
-      - DATABASE_URL=mysql+aiomysql://navicat:201220@host.docker.internal:3306/lucky_draw
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
       - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=admin
-      - MINIO_SECRET_KEY=Gun2407001
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET=lucky-draw-uploads
-      - MINIO_PUBLIC_ENDPOINT=http://localhost:9000
+      # CRITICAL: This must be the public domain Nginx gives to MinIO
+      - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT} 
     depends_on:
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+      - redis
+      - rabbitmq
+      - minio
     networks:
-      - lucky-draw-net
+      - prod-net
 
-  # ------------------------------------
-  # 1.5 Background Worker (RabbitMQ -> MySQL)
-  # ------------------------------------
+  # --- 2. Database Worker (Scalable) ---
   worker:
-    build:
+    build: 
       context: ./lucky_draw_api
-      dockerfile: Dockerfile
-    container_name: lucky_draw_worker
-    restart: unless-stopped
+    restart: always
+    # Run the worker using the built image's environment
     command: ["uv", "run", "python", "src/lucky_draw_api/worker.py"]
-    volumes:
-      - ./lucky_draw_api:/app
     environment:
-      - DATABASE_URL=mysql+aiomysql://navicat:201220@host.docker.internal:3306/lucky_draw
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
+    deploy:
+      replicas: 3 # Instantly scale to 3 workers to drain the queue faster
     networks:
-      - lucky-draw-net
+      - prod-net
 
-  # ------------------------------------
-  # 2. MinIO (S3-compatible Object Storage)
-  # ------------------------------------
+  # --- 3. MinIO ---
   minio:
     image: minio/minio
-    container_name: lucky_draw_minio
-    restart: unless-stopped
+    restart: always
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000" # S3 API (Proxied by Nginx)
+      - "127.0.0.1:9001:9001" # Web Console (Proxied by Nginx)
     environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=Gun2407001
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY}
       - MINIO_API_CORS_ALLOW_ORIGIN=*
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
-      - lucky-draw-net
+      - prod-net
 
-  # ------------------------------------
-  # 3. Redis (For Fast Sequence Generation)
-  # ------------------------------------
+  # --- 4. Redis ---
   redis:
     image: redis:7-alpine
-    container_name: lucky_draw_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
+    restart: always
     command: redis-server --save 60 1 --loglevel warning
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
     networks:
-      - lucky-draw-net
+      - prod-net
 
-  # ------------------------------------
-  # 4. RabbitMQ (Message Queue)
-  # ------------------------------------
+  # --- 5. RabbitMQ ---
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: lucky_draw_rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
+    restart: always
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
-      - lucky-draw-net
+      - prod-net
 
 volumes:
   minio_data:
@@ -129,5 +87,5 @@ volumes:
   rabbitmq_data:
 
 networks:
-  lucky-draw-net:
+  prod-net:
     driver: bridge
