@@ -28,11 +28,13 @@ import {
   LockKeyIcon,
   GiftIcon,
   InfoIcon,
+  BuildingsIcon,
 } from "@phosphor-icons/react";
 
 import { motion, useAnimation } from "framer-motion";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
+import type { DrawMode, ParticipantWinner, PekonWinner } from "@/types/draw";
 
 const ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
 
@@ -117,14 +119,41 @@ const RollingChar = ({
   );
 };
 
-const WinnerHistoryDrawer = () => {
-  const { data: winners, isLoading } = useQuery({
-    queryKey: ["winners"],
+const WinnerHistoryDrawer = ({
+  activeMode = "participant",
+}: {
+  activeMode?: DrawMode;
+}) => {
+  const [tab, setTab] = useState<DrawMode>(activeMode || "participant");
+
+  useEffect(() => {
+    setTab(activeMode);
+  }, [activeMode]);
+
+  const { data: participants, isLoading: isLoadingParticipants } = useQuery<
+    ParticipantWinner[]
+  >({
+    queryKey: ["winners", "participants"],
     queryFn: async () => {
-      const response = await axios.get("/api/participants?winners_only=true");
+      const response = await axios.get<ParticipantWinner[]>(
+        "/api/participants?winners_only=true",
+      );
       return response.data;
     },
   });
+
+  const { data: pekons, isLoading: isLoadingPekons } = useQuery<PekonWinner[]>({
+    queryKey: ["winners", "pekon"],
+    queryFn: async () => {
+      const response = await axios.get<PekonWinner[]>(
+        "/api/pekon?winners_only=true",
+      );
+      return response.data;
+    },
+  });
+
+  const isLoading =
+    tab === "participant" ? isLoadingParticipants : isLoadingPekons;
 
   return (
     <Sheet>
@@ -148,142 +177,272 @@ const WinnerHistoryDrawer = () => {
             <TrophyIcon weight="fill" className="w-6 h-6 text-primary" />
             Daftar Pemenang
           </SheetTitle>
+          <div className="flex bg-black/40 p-1 rounded-xl border border-primary/20 mt-3 gap-1">
+            <button
+              onClick={() => setTab("participant")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all",
+                tab === "participant"
+                  ? "bg-primary text-black shadow-md"
+                  : "text-primary/70 hover:text-primary hover:bg-white/5",
+              )}
+            >
+              <UserIcon weight="bold" className="w-4 h-4" />
+              Peserta ({participants?.length || 0})
+            </button>
+            <button
+              onClick={() => setTab("pekon")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all",
+                tab === "pekon"
+                  ? "bg-primary text-black shadow-md"
+                  : "text-primary/70 hover:text-primary hover:bg-white/5",
+              )}
+            >
+              <BuildingsIcon weight="bold" className="w-4 h-4" />
+              Pekon ({pekons?.length || 0})
+            </button>
+          </div>
         </SheetHeader>
         <ScrollArea className="flex-1 px-4 py-4">
           {isLoading ? (
             <p className="text-center text-primary/60 py-4 font-medium">
               Memuat data...
             </p>
-          ) : winners?.length === 0 ? (
-            <p className="text-center text-primary/60 py-8 font-medium">
-              Belum ada pemenang.
-            </p>
+          ) : tab === "participant" ? (
+            participants?.length === 0 ? (
+              <p className="text-center text-primary/60 py-8 font-medium">
+                Belum ada pemenang.
+              </p>
+            ) : (
+              <div className="flex flex-col space-y-3 pb-8">
+                {participants?.map((winner, index) => (
+                  <Dialog key={winner.id}>
+                    <DialogTrigger
+                      render={
+                        <button className="w-full text-left bg-black/20 hover:bg-primary/20 border border-primary/20 hover:border-primary/50 transition-all rounded-xl p-4 shadow-sm flex items-center gap-4">
+                          {winner.photo_path ? (
+                            <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-primary/30 bg-black/40">
+                              <img
+                                src={winner.photo_path}
+                                alt={winner.full_name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 shrink-0 rounded-full border-2 border-primary/30 bg-black/40 flex items-center justify-center">
+                              <UserIcon
+                                weight="fill"
+                                className="w-6 h-6 text-white/40"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="text-xs text-primary/70 font-bold tracking-wider">
+                                #{index + 1}
+                              </div>
+                              <div className="text-xs font-mono text-primary/70 font-semibold tracking-wider">
+                                {winner.coupon_code}
+                              </div>
+                            </div>
+                            <div className="text-primary font-bold text-lg truncate transition-colors drop-shadow-sm">
+                              {winner.full_name}
+                            </div>
+                          </div>
+                        </button>
+                      }
+                    />
+                    <DialogContent className="sm:max-w-md bg-[#232A20] border-primary/20 text-[#F8F5EF]">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading text-2xl text-primary flex items-center gap-2 border-b border-white/10 pb-4">
+                          <MedalIcon
+                            weight="fill"
+                            className="w-8 h-8 text-secondary"
+                          />
+                          Detail Pemenang
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center py-2 space-y-6">
+                        {winner.photo_path ? (
+                          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-xl bg-black/40">
+                            <img
+                              src={winner.photo_path}
+                              alt={winner.full_name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-32 h-32 rounded-full bg-black/40 flex items-center justify-center border-4 border-white/10 shadow-xl">
+                            <UserIcon
+                              weight="fill"
+                              className="w-16 h-16 text-white/40"
+                            />
+                          </div>
+                        )}
+                        <div className="w-full space-y-5">
+                          <div className="bg-black/30 p-4 rounded-xl border border-white/10 text-center">
+                            <p className="text-xs uppercase font-bold text-primary mb-1 tracking-widest">
+                              Kode Kupon
+                            </p>
+                            <p className="text-2xl font-black font-sans tracking-widest text-[#F8F5EF]">
+                              {winner.coupon_code}
+                            </p>
+                          </div>
+                          <div className="space-y-4 px-2">
+                            <div className="flex items-start gap-4">
+                              <IdentificationCardIcon
+                                weight="duotone"
+                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              />
+                              <div>
+                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                  Nama & Tgl Lahir
+                                </p>
+                                <p className="font-bold text-[#F8F5EF] text-lg leading-tight">
+                                  {winner.full_name}
+                                </p>
+                                <p className="text-sm font-mono text-white/60 mt-0.5">
+                                  {winner.date_of_birth}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                              <MapPinIcon
+                                weight="duotone"
+                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              />
+                              <div>
+                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                  Alamat
+                                </p>
+                                <p className="font-medium text-[#F8F5EF] leading-snug">
+                                  {winner.alamat}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                              <PhoneIcon
+                                weight="duotone"
+                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              />
+                              <div>
+                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                  Telepon
+                                </p>
+                                <p className="font-medium text-[#F8F5EF]">
+                                  {winner.phone_number}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ))}
+              </div>
+            )
           ) : (
-            <div className="flex flex-col space-y-3 pb-8">
-              {winners?.map((winner: any, index: number) => (
-                <Dialog key={winner.id}>
-                  <DialogTrigger render={
-                    <button className="w-full text-left bg-black/20 hover:bg-primary/20 border border-primary/20 hover:border-primary/50 transition-all rounded-xl p-4 shadow-sm flex items-center gap-4">
-                      {winner.photo_path ? (
-                        <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden border-2 border-primary/30 bg-black/40">
-                          <img
-                            src={winner.photo_path}
-                            alt={winner.full_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 shrink-0 rounded-full border-2 border-primary/30 bg-black/40 flex items-center justify-center">
-                          <UserIcon
-                            weight="fill"
-                            className="w-6 h-6 text-white/40"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="text-xs text-primary/70 font-bold tracking-wider">
-                            #{index + 1}
-                          </div>
-                          <div className="text-xs font-mono text-primary/70 font-semibold tracking-wider">
-                            {winner.coupon_code}
-                          </div>
-                        </div>
-                        <div className="text-primary font-bold text-lg truncate transition-colors drop-shadow-sm">
-                          {winner.full_name}
-                        </div>
-                      </div>
-                    </button>
-                  } />
-                  <DialogContent className="sm:max-w-md bg-[#232A20] border-primary/20 text-[#F8F5EF]">
-                    <DialogHeader>
-                      <DialogTitle className="font-heading text-2xl text-primary flex items-center gap-2 border-b border-white/10 pb-4">
-                        <MedalIcon
-                          weight="fill"
-                          className="w-8 h-8 text-secondary"
-                        />
-                        Detail Pemenang
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col items-center py-2 space-y-6">
-                      {winner.photo_path ? (
-                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-xl bg-black/40">
-                          <img
-                            src={winner.photo_path}
-                            alt={winner.full_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-32 h-32 rounded-full bg-black/40 flex items-center justify-center border-4 border-white/10 shadow-xl">
-                          <UserIcon
-                            weight="fill"
-                            className="w-16 h-16 text-white/40"
-                          />
-                        </div>
-                      )}
-                      <div className="w-full space-y-5">
-                        <div className="bg-black/30 p-4 rounded-xl border border-white/10 text-center">
-                          <p className="text-xs uppercase font-bold text-primary mb-1 tracking-widest">
-                            Kode Kupon
-                          </p>
-                          <p className="text-2xl font-black font-sans tracking-widest text-[#F8F5EF]">
-                            {winner.coupon_code}
-                          </p>
-                        </div>
-                        <div className="space-y-4 px-2">
-                          <div className="flex items-start gap-4">
-                            <IdentificationCardIcon
+            pekons?.length === 0 ? (
+              <p className="text-center text-primary/60 py-8 font-medium">
+                Belum ada pemenang.
+              </p>
+            ) : (
+              <div className="flex flex-col space-y-3 pb-8">
+                {pekons?.map((winner, index) => (
+                  <Dialog key={winner.id}>
+                    <DialogTrigger
+                      render={
+                        <button className="w-full text-left bg-black/20 hover:bg-primary/20 border border-primary/20 hover:border-primary/50 transition-all rounded-xl p-4 shadow-sm flex items-center gap-4">
+                          <div className="w-12 h-12 shrink-0 rounded-full border-2 border-primary/30 bg-black/40 flex items-center justify-center">
+                            <BuildingsIcon
                               weight="duotone"
-                              className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              className="w-6 h-6 text-primary"
                             />
-                            <div>
-                              <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
-                                Nama & Tgl Lahir
-                              </p>
-                              <p className="font-bold text-[#F8F5EF] text-lg leading-tight">
-                                {winner.full_name}
-                              </p>
-                              <p className="text-sm font-mono text-white/60 mt-0.5">
-                                {winner.date_of_birth}
-                              </p>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="text-xs text-primary/70 font-bold tracking-wider">
+                                #{index + 1}
+                              </div>
+                              <div className="text-xs font-mono text-primary/70 font-semibold tracking-wider">
+                                {winner.coupon_code}
+                              </div>
+                            </div>
+                            <div className="text-primary font-bold text-lg truncate transition-colors drop-shadow-sm">
+                              Pekon {winner.name}
+                            </div>
+                            <div className="text-xs text-white/60 truncate mt-0.5">
+                              Kec. {winner.kecamatan}
                             </div>
                           </div>
-                          <div className="flex items-start gap-4">
-                            <MapPinIcon
-                              weight="duotone"
-                              className="w-6 h-6 text-primary mt-0.5 shrink-0"
-                            />
-                            <div>
-                              <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
-                                Alamat
-                              </p>
-                              <p className="font-medium text-[#F8F5EF] leading-snug">
-                                {winner.alamat}
-                              </p>
-                            </div>
+                        </button>
+                      }
+                    />
+                    <DialogContent className="sm:max-w-md bg-[#232A20] border-primary/20 text-[#F8F5EF]">
+                      <DialogHeader>
+                        <DialogTitle className="font-heading text-2xl text-primary flex items-center gap-2 border-b border-white/10 pb-4">
+                          <MedalIcon
+                            weight="fill"
+                            className="w-8 h-8 text-secondary"
+                          />
+                          Detail Pekon Pemenang
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center py-2 space-y-6">
+                        <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center border-4 border-primary/20 shadow-xl">
+                          <BuildingsIcon
+                            weight="duotone"
+                            className="w-12 h-12 text-primary"
+                          />
+                        </div>
+                        <div className="w-full space-y-5">
+                          <div className="bg-black/30 p-4 rounded-xl border border-white/10 text-center">
+                            <p className="text-xs uppercase font-bold text-primary mb-1 tracking-widest">
+                              Kode Kupon
+                            </p>
+                            <p className="text-2xl font-black font-sans tracking-widest text-[#F8F5EF]">
+                              {winner.coupon_code}
+                            </p>
                           </div>
-                          <div className="flex items-start gap-4">
-                            <PhoneIcon
-                              weight="duotone"
-                              className="w-6 h-6 text-primary mt-0.5 shrink-0"
-                            />
-                            <div>
-                              <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
-                                Telepon
-                              </p>
-                              <p className="font-medium text-[#F8F5EF]">
-                                {winner.phone_number}
-                              </p>
+                          <div className="space-y-4 px-2">
+                            <div className="flex items-start gap-4">
+                              <BuildingsIcon
+                                weight="duotone"
+                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              />
+                              <div>
+                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                  Nama Pekon
+                                </p>
+                                <p className="font-bold text-[#F8F5EF] text-lg leading-tight">
+                                  Pekon {winner.name}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-4">
+                              <MapPinIcon
+                                weight="duotone"
+                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                              />
+                              <div>
+                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                  Kecamatan
+                                </p>
+                                <p className="font-medium text-[#F8F5EF] leading-snug">
+                                  Kecamatan {winner.kecamatan}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              ))}
-            </div>
+                    </DialogContent>
+                  </Dialog>
+                ))}
+              </div>
+            )
           )}
         </ScrollArea>
       </SheetContent>
