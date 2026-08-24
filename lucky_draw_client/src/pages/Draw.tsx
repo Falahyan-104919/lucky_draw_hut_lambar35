@@ -458,6 +458,13 @@ export default function Draw() {
   const [passcode, setPasscode] = useState("");
   const [passcodeError, setPasscodeError] = useState("");
 
+  const [drawMode, setDrawMode] = useState<DrawMode>("participant");
+  const [pekonWinnerData, setPekonWinnerData] = useState<PekonWinner | null>(
+    null,
+  );
+  const [participantWinnerData, setParticipantWinnerData] =
+    useState<ParticipantWinner | null>(null);
+
   const [isSpinning, setIsSpinning] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [winnerCode, setWinnerCode] = useState<string>("???????????");
@@ -465,9 +472,47 @@ export default function Draw() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
 
-  const mutation = useMutation({
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.6 },
+      zIndex: 1000,
+    });
+
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 1000,
+    };
+    const randomInRange = (min: number, max: number) =>
+      Math.random() * (max - min) + min;
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+      const particleCount = 50 * (timeLeft / duration);
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      });
+    }, 250);
+  };
+
+  const participantMutation = useMutation({
     mutationFn: async () => {
-      const response = await axios.post("/api/participants/draw");
+      const response = await axios.post<ParticipantWinner>(
+        "/api/participants/draw",
+      );
       return response.data;
     },
     onSuccess: (data) => {
@@ -479,43 +524,13 @@ export default function Draw() {
 
       setTimeout(
         () => {
+          setParticipantWinnerData(data);
           setWinnerName(data.full_name);
           setIsRevealed(true);
-          queryClient.invalidateQueries({ queryKey: ["winners"] });
-
-          confetti({
-            particleCount: 150,
-            spread: 100,
-            origin: { y: 0.6 },
-            zIndex: 1000,
+          queryClient.invalidateQueries({
+            queryKey: ["winners", "participants"],
           });
-
-          const duration = 3000;
-          const animationEnd = Date.now() + duration;
-          const defaults = {
-            startVelocity: 30,
-            spread: 360,
-            ticks: 60,
-            zIndex: 1000,
-          };
-          const randomInRange = (min: number, max: number) =>
-            Math.random() * (max - min) + min;
-
-          const interval: any = setInterval(function () {
-            const timeLeft = animationEnd - Date.now();
-            if (timeLeft <= 0) return clearInterval(interval);
-            const particleCount = 50 * (timeLeft / duration);
-            confetti({
-              ...defaults,
-              particleCount,
-              origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-            });
-            confetti({
-              ...defaults,
-              particleCount,
-              origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-            });
-          }, 250);
+          triggerConfetti();
         },
         code.length * 1000 + 500,
       );
@@ -534,15 +549,73 @@ export default function Draw() {
     },
   });
 
+  const pekonMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post<PekonWinner>("/api/pekon/draw");
+      return response.data;
+    },
+    onSuccess: (data) => {
+      let code = data.coupon_code || "PEKON-0000";
+      if (code.length < 10) code = code.padEnd(10, "-");
+      else if (code.length > 10) code = code.substring(0, 10);
+      setWinnerCode(code);
+      setIsSpinning(false);
+
+      setTimeout(
+        () => {
+          setPekonWinnerData(data);
+          setIsRevealed(true);
+          queryClient.invalidateQueries({
+            queryKey: ["winners", "pekon"],
+          });
+          triggerConfetti();
+        },
+        code.length * 1000 + 500,
+      );
+    },
+    onError: (error: AxiosError<{ detail: string }>) => {
+      setIsSpinning(false);
+      if (error.response?.status === 404) {
+        setWinnerCode("--SELESAI-");
+        setErrorMsg("Semua pekon sudah mendapatkan hadiah.");
+      } else {
+        setWinnerCode("---ERROR--");
+        setErrorMsg(
+          error.response?.data?.detail || "Terjadi kesalahan jaringan.",
+        );
+      }
+    },
+  });
+
+  const handleModeChange = (mode: DrawMode) => {
+    if (isSpinning) return;
+    setDrawMode(mode);
+    setHasStarted(false);
+    setIsSpinning(false);
+    setIsRevealed(false);
+    setWinnerName(null);
+    setPekonWinnerData(null);
+    setParticipantWinnerData(null);
+    setErrorMsg(null);
+    setWinnerCode(mode === "participant" ? "???????????" : "??????????");
+  };
+
   const handleDraw = () => {
     if (isSpinning) return;
     setHasStarted(true);
     setIsSpinning(true);
     setIsRevealed(false);
     setWinnerName(null);
+    setPekonWinnerData(null);
+    setParticipantWinnerData(null);
     setErrorMsg(null);
-    setWinnerCode("???????????");
-    mutation.mutate();
+    setWinnerCode(drawMode === "participant" ? "???????????" : "??????????");
+
+    if (drawMode === "participant") {
+      participantMutation.mutate();
+    } else {
+      pekonMutation.mutate();
+    }
   };
 
   const handleLogin = (e: React.SubmitEvent) => {
@@ -612,7 +685,7 @@ export default function Draw() {
     <div
       className={`flex flex-col h-screen ${pageBgClass} text-[#F8F5EF] overflow-hidden relative font-sans`}
     >
-      <WinnerHistoryDrawer />
+      <WinnerHistoryDrawer activeMode={drawMode} />
       <img
         src="/bupati.png"
         alt="Bupati Lampung Barat"
@@ -629,12 +702,44 @@ export default function Draw() {
             HUT Lampung Barat-35
           </div>
         </div>
+
+        {/* Mode Switcher */}
+        <div className="flex bg-black/40 backdrop-blur-md p-1.5 rounded-2xl border border-primary/30 shadow-xl gap-2 z-30">
+          <button
+            disabled={isSpinning}
+            onClick={() => handleModeChange("participant")}
+            className={cn(
+              "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+              drawMode === "participant"
+                ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
+                : "text-[#C09A5B] hover:bg-white/5",
+            )}
+          >
+            <UserIcon weight="bold" className="w-4 h-4" />
+            Undian Peserta
+          </button>
+          <button
+            disabled={isSpinning}
+            onClick={() => handleModeChange("pekon")}
+            className={cn(
+              "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+              drawMode === "pekon"
+                ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
+                : "text-[#C09A5B] hover:bg-white/5",
+            )}
+          >
+            <BuildingsIcon weight="bold" className="w-4 h-4" />
+            Undian Pekon
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center relative z-20 w-full pl-0 lg:pl-[30%] pr-0 lg:pr-[5%]">
         <div className="mb-10 text-center flex flex-col items-center">
           <h1 className="text-3xl md:text-5xl lg:text-[56px] font-heading text-[#C09A5B] font-normal tracking-[0.15em] mb-4 drop-shadow-lg">
-            PENGUNDIAN DOORPRIZE
+            {drawMode === "participant"
+              ? "PENGUNDIAN DOORPRIZE PESERTA"
+              : "PENGUNDIAN DOORPRIZE PEKON"}
           </h1>
           <div className="flex items-center gap-3 opacity-80">
             <div className="w-16 md:w-32 h-[1px] bg-gradient-to-r from-transparent to-[#C09A5B]"></div>
@@ -660,24 +765,53 @@ export default function Draw() {
             <InfoIcon className="w-4 h-4" />
           </div>
           <p className="text-sm md:text-base font-light">
-            Nomor undian akan diundi secara acak oleh sistem
+            {drawMode === "participant"
+              ? "Nomor undian peserta akan diundi secara acak oleh sistem"
+              : "Kupon pekon se-Kabupaten Lampung Barat akan diundi secara acak"}
           </p>
         </div>
 
         {/* Winner Announcement or Action Button Area */}
         <div className="flex flex-col items-center justify-center w-full relative gap-6">
-          {isRevealed && winnerName && (
-            <div
-              className={`transition-all duration-1000 ease-out transform ${isRevealed ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"} text-center bg-black/40 backdrop-blur-md border border-[#C09A5B]/50 px-10 py-6 rounded-2xl shadow-[0_0_40px_rgba(192,154,91,0.2)]`}
-            >
-              <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
-                Selamat Kepada Pemenang
-              </p>
-              <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                {winnerName}
-              </h2>
-            </div>
-          )}
+          {isRevealed &&
+            (drawMode === "participant"
+              ? participantWinnerData || winnerName
+              : pekonWinnerData) && (
+              <div
+                className={`transition-all duration-1000 ease-out transform ${
+                  isRevealed
+                    ? "opacity-100 translate-y-0 scale-100"
+                    : "opacity-0 translate-y-8 scale-95"
+                } text-center bg-black/40 backdrop-blur-md border border-[#C09A5B]/50 px-10 py-6 rounded-2xl shadow-[0_0_40px_rgba(192,154,91,0.2)]`}
+              >
+                {drawMode === "participant" ? (
+                  <>
+                    <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
+                      Selamat Kepada Pemenang
+                    </p>
+                    <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                      {participantWinnerData?.full_name || winnerName}
+                    </h2>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
+                      Selamat Kepada Pekon Pemenang
+                    </p>
+                    <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                      Pekon {pekonWinnerData?.name}
+                    </h2>
+                    <div className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/40 text-primary font-medium text-sm md:text-base">
+                      <MapPinIcon
+                        weight="duotone"
+                        className="w-5 h-5 text-primary inline mr-1.5"
+                      />
+                      Kecamatan {pekonWinnerData?.kecamatan}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
           {errorMsg && !isSpinning && (
             <div className="text-red-400 text-lg md:text-xl font-medium bg-red-950/40 backdrop-blur-md px-8 py-4 rounded-xl border border-red-500/30">
