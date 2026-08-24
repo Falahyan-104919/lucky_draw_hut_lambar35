@@ -343,106 +343,104 @@ const WinnerHistoryDrawer = ({
                 ))}
               </div>
             )
+          ) : pekons?.length === 0 ? (
+            <p className="text-center text-primary/60 py-8 font-medium">
+              Belum ada pemenang.
+            </p>
           ) : (
-            pekons?.length === 0 ? (
-              <p className="text-center text-primary/60 py-8 font-medium">
-                Belum ada pemenang.
-              </p>
-            ) : (
-              <div className="flex flex-col space-y-3 pb-8">
-                {pekons?.map((winner, index) => (
-                  <Dialog key={winner.id}>
-                    <DialogTrigger
-                      render={
-                        <button className="w-full text-left bg-black/20 hover:bg-primary/20 border border-primary/20 hover:border-primary/50 transition-all rounded-xl p-4 shadow-sm flex items-center gap-4">
-                          <div className="w-12 h-12 shrink-0 rounded-full border-2 border-primary/30 bg-black/40 flex items-center justify-center">
-                            <BuildingsIcon
-                              weight="duotone"
-                              className="w-6 h-6 text-primary"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="text-xs text-primary/70 font-bold tracking-wider">
-                                #{index + 1}
-                              </div>
-                              <div className="text-xs font-mono text-primary/70 font-semibold tracking-wider">
-                                {winner.coupon_code}
-                              </div>
-                            </div>
-                            <div className="text-primary font-bold text-lg truncate transition-colors drop-shadow-sm">
-                              Pekon {winner.name}
-                            </div>
-                            <div className="text-xs text-white/60 truncate mt-0.5">
-                              Kec. {winner.kecamatan}
-                            </div>
-                          </div>
-                        </button>
-                      }
-                    />
-                    <DialogContent className="sm:max-w-md bg-[#232A20] border-primary/20 text-[#F8F5EF]">
-                      <DialogHeader>
-                        <DialogTitle className="font-heading text-2xl text-primary flex items-center gap-2 border-b border-white/10 pb-4">
-                          <MedalIcon
-                            weight="fill"
-                            className="w-8 h-8 text-secondary"
-                          />
-                          Detail Pekon Pemenang
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="flex flex-col items-center py-2 space-y-6">
-                        <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center border-4 border-primary/20 shadow-xl">
+            <div className="flex flex-col space-y-3 pb-8">
+              {pekons?.map((winner, index) => (
+                <Dialog key={winner.id}>
+                  <DialogTrigger
+                    render={
+                      <button className="w-full text-left bg-black/20 hover:bg-primary/20 border border-primary/20 hover:border-primary/50 transition-all rounded-xl p-4 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 shrink-0 rounded-full border-2 border-primary/30 bg-black/40 flex items-center justify-center">
                           <BuildingsIcon
                             weight="duotone"
-                            className="w-12 h-12 text-primary"
+                            className="w-6 h-6 text-primary"
                           />
                         </div>
-                        <div className="w-full space-y-5">
-                          <div className="bg-black/30 p-4 rounded-xl border border-white/10 text-center">
-                            <p className="text-xs uppercase font-bold text-primary mb-1 tracking-widest">
-                              Kode Kupon
-                            </p>
-                            <p className="text-2xl font-black font-sans tracking-widest text-[#F8F5EF]">
-                              {winner.coupon_code}
-                            </p>
-                          </div>
-                          <div className="space-y-4 px-2">
-                            <div className="flex items-start gap-4">
-                              <BuildingsIcon
-                                weight="duotone"
-                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
-                              />
-                              <div>
-                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
-                                  Nama Pekon
-                                </p>
-                                <p className="font-bold text-[#F8F5EF] text-lg leading-tight">
-                                  Pekon {winner.name}
-                                </p>
-                              </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="text-xs text-primary/70 font-bold tracking-wider">
+                              #{index + 1}
                             </div>
-                            <div className="flex items-start gap-4">
-                              <MapPinIcon
-                                weight="duotone"
-                                className="w-6 h-6 text-primary mt-0.5 shrink-0"
-                              />
-                              <div>
-                                <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
-                                  Kecamatan
-                                </p>
-                                <p className="font-medium text-[#F8F5EF] leading-snug">
-                                  Kecamatan {winner.kecamatan}
-                                </p>
-                              </div>
+                            <div className="text-xs font-mono text-primary/70 font-semibold tracking-wider">
+                              {winner.coupon_code}
+                            </div>
+                          </div>
+                          <div className="text-primary font-bold text-lg truncate transition-colors drop-shadow-sm">
+                            Pekon {winner.name}
+                          </div>
+                          <div className="text-xs text-white/60 truncate mt-0.5">
+                            Kec. {winner.kecamatan}
+                          </div>
+                        </div>
+                      </button>
+                    }
+                  />
+                  <DialogContent className="sm:max-w-md bg-[#232A20] border-primary/20 text-[#F8F5EF]">
+                    <DialogHeader>
+                      <DialogTitle className="font-heading text-2xl text-primary flex items-center gap-2 border-b border-white/10 pb-4">
+                        <MedalIcon
+                          weight="fill"
+                          className="w-8 h-8 text-secondary"
+                        />
+                        Detail Pekon Pemenang
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex flex-col items-center py-2 space-y-6">
+                      <div className="w-24 h-24 rounded-full bg-black/40 flex items-center justify-center border-4 border-primary/20 shadow-xl">
+                        <BuildingsIcon
+                          weight="duotone"
+                          className="w-12 h-12 text-primary"
+                        />
+                      </div>
+                      <div className="w-full space-y-5">
+                        <div className="bg-black/30 p-4 rounded-xl border border-white/10 text-center">
+                          <p className="text-xs uppercase font-bold text-primary mb-1 tracking-widest">
+                            Kode Kupon
+                          </p>
+                          <p className="text-2xl font-black font-sans tracking-widest text-[#F8F5EF]">
+                            {winner.coupon_code}
+                          </p>
+                        </div>
+                        <div className="space-y-4 px-2">
+                          <div className="flex items-start gap-4">
+                            <BuildingsIcon
+                              weight="duotone"
+                              className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                            />
+                            <div>
+                              <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                Nama Pekon
+                              </p>
+                              <p className="font-bold text-[#F8F5EF] text-lg leading-tight">
+                                Pekon {winner.name}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <MapPinIcon
+                              weight="duotone"
+                              className="w-6 h-6 text-primary mt-0.5 shrink-0"
+                            />
+                            <div>
+                              <p className="text-xs text-white/50 font-semibold uppercase tracking-wider mb-1">
+                                Kecamatan
+                              </p>
+                              <p className="font-medium text-[#F8F5EF] leading-snug">
+                                Kecamatan {winner.kecamatan}
+                              </p>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                ))}
-              </div>
-            )
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              ))}
+            </div>
           )}
         </ScrollArea>
       </SheetContent>
@@ -632,212 +630,218 @@ export default function Draw() {
 
   if (!isAuthenticated) {
     return (
-      <div
-        className={cn(
-          "flex flex-col h-screen text-[#F8F5EF] overflow-hidden relative font-sans items-center justify-center",
-          pageBgClass,
-        )}
-      >
-        <div className="z-10 bg-black/30 p-8 rounded-2xl backdrop-blur-md border border-primary/20 shadow-2xl max-w-sm w-full mx-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+      <>
+        <title>Akses Terkunci | HUT Lampung Barat ke-35</title>
+        <div
+          className={cn(
+            "flex flex-col h-screen text-[#F8F5EF] overflow-hidden relative font-sans items-center justify-center",
+            pageBgClass,
+          )}
+        >
+          <div className="z-10 bg-black/30 p-8 rounded-2xl backdrop-blur-md border border-primary/20 shadow-2xl max-w-sm w-full mx-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
 
-          <div className="flex flex-col items-center mb-6">
-            <LockKeyIcon
-              weight="duotone"
-              className="w-16 h-16 text-primary mb-4 drop-shadow-[0_0_15px_rgba(192,154,91,0.5)]"
-            />
-            <h2 className="text-2xl font-heading text-primary font-bold uppercase tracking-widest text-center">
-              Akses Terkunci
-            </h2>
-          </div>
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div>
-              <input
-                type="password"
-                value={passcode}
-                onChange={(e) => {
-                  setPasscode(e.target.value);
-                  setPasscodeError("");
-                }}
-                placeholder="Passcode"
-                className="w-full bg-black/50 border border-primary/30 rounded-xl px-4 py-3 text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/50 text-center tracking-widest font-mono text-lg transition-all"
-                autoFocus
+            <div className="flex flex-col items-center mb-6">
+              <LockKeyIcon
+                weight="duotone"
+                className="w-16 h-16 text-primary mb-4 drop-shadow-[0_0_15px_rgba(192,154,91,0.5)]"
               />
-              {passcodeError && (
-                <p className="text-destructive text-sm mt-2 text-center font-medium">
-                  {passcodeError}
-                </p>
-              )}
+              <h2 className="text-2xl font-heading text-primary font-bold uppercase tracking-widest text-center">
+                Akses Terkunci
+              </h2>
             </div>
-            <Button
-              type="submit"
-              className="w-full h-12 bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black font-bold tracking-widest uppercase hover:from-[#E5C158] hover:to-[#C09A5B] border border-[#F2D06B] shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-all active:scale-95 rounded-lg"
-            >
-              Masuk
-            </Button>
-          </form>
+            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+              <div>
+                <input
+                  type="password"
+                  value={passcode}
+                  onChange={(e) => {
+                    setPasscode(e.target.value);
+                    setPasscodeError("");
+                  }}
+                  placeholder="Passcode"
+                  className="w-full bg-black/50 border border-primary/30 rounded-xl px-4 py-3 text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/50 text-center tracking-widest font-mono text-lg transition-all"
+                  autoFocus
+                />
+                {passcodeError && (
+                  <p className="text-destructive text-sm mt-2 text-center font-medium">
+                    {passcodeError}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black font-bold tracking-widest uppercase hover:from-[#E5C158] hover:to-[#C09A5B] border border-[#F2D06B] shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-all active:scale-95 rounded-lg"
+              >
+                Masuk
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div
-      className={`flex flex-col h-screen ${pageBgClass} text-[#F8F5EF] overflow-hidden relative font-sans`}
-    >
-      <WinnerHistoryDrawer activeMode={drawMode} />
-      <img
-        src="/bupati.png"
-        alt="Bupati Lampung Barat"
-        className="absolute -bottom-5 -left-10 lg:left-[2%] h-[75vh] lg:h-[85vh] object-contain object-bottom pointer-events-none z-20 drop-shadow-2xl"
-      />
-      <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-30 px-2 lg:px-10">
-        <div className="flex items-center gap-3">
-          <img
-            src="/logo_hut_lambar-35.png"
-            alt="HUT 35"
-            className="h-10 md:h-12 w-auto drop-shadow-md"
-          />
-          <div className="text-sm md:text-base font-bold tracking-[0.15em] text-[#C09A5B] font-heading uppercase">
-            HUT Lampung Barat-35
-          </div>
-        </div>
-
-        {/* Mode Switcher */}
-        <div className="flex bg-black/40 backdrop-blur-md p-1.5 rounded-2xl border border-primary/30 shadow-xl gap-2 z-30">
-          <button
-            disabled={isSpinning}
-            onClick={() => handleModeChange("participant")}
-            className={cn(
-              "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
-              drawMode === "participant"
-                ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
-                : "text-[#C09A5B] hover:bg-white/5",
-            )}
-          >
-            <UserIcon weight="bold" className="w-4 h-4" />
-            Undian Peserta
-          </button>
-          <button
-            disabled={isSpinning}
-            onClick={() => handleModeChange("pekon")}
-            className={cn(
-              "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
-              drawMode === "pekon"
-                ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
-                : "text-[#C09A5B] hover:bg-white/5",
-            )}
-          >
-            <BuildingsIcon weight="bold" className="w-4 h-4" />
-            Undian Pekon
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center relative z-20 w-full pl-0 lg:pl-[30%] pr-0 lg:pr-[5%]">
-        <div className="mb-10 text-center flex flex-col items-center">
-          <h1 className="text-3xl md:text-5xl lg:text-[56px] font-heading text-[#C09A5B] font-normal tracking-[0.15em] mb-4 drop-shadow-lg">
-            {drawMode === "participant"
-              ? "PENGUNDIAN DOORPRIZE PESERTA"
-              : "PENGUNDIAN DOORPRIZE PEKON"}
-          </h1>
-          <div className="flex items-center gap-3 opacity-80">
-            <div className="w-16 md:w-32 h-[1px] bg-gradient-to-r from-transparent to-[#C09A5B]"></div>
-            <div className="w-2 h-2 rotate-45 bg-[#C09A5B]"></div>
-            <div className="w-16 md:w-32 h-[1px] bg-gradient-to-l from-transparent to-[#C09A5B]"></div>
-          </div>
-        </div>
-
-        <div className="flex flex-row justify-center flex-wrap gap-y-3 mb-10 w-full max-w-[900px]">
-          {winnerCode.split("").map((char, index) => (
-            <RollingChar
-              key={index}
-              targetChar={char}
-              isSpinning={isSpinning}
-              hasStarted={hasStarted}
-              stopDelay={index * 1000}
+    <>
+      <title>Undian Doorprize | HUT Lampung Barat ke-35</title>
+      <div
+        className={`flex flex-col h-screen ${pageBgClass} text-[#F8F5EF] overflow-hidden relative font-sans`}
+      >
+        <WinnerHistoryDrawer activeMode={drawMode} />
+        <img
+          src="/bupati.png"
+          alt="Bupati Lampung Barat"
+          className="absolute -bottom-5 -left-10 lg:left-[2%] h-[75vh] lg:h-[85vh] object-contain object-bottom pointer-events-none z-20 drop-shadow-2xl"
+        />
+        <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-30 px-2 lg:px-10">
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo_hut_lambar-35.png"
+              alt="HUT 35"
+              className="h-10 md:h-12 w-auto drop-shadow-md"
             />
-          ))}
-        </div>
-
-        <div className="flex items-center justify-center gap-3 text-white/70 mb-12 font-sans tracking-wide">
-          <div className="w-6 h-6 rounded-full border border-white/50 flex items-center justify-center">
-            <InfoIcon className="w-4 h-4" />
+            <div className="text-sm md:text-base font-bold tracking-[0.15em] text-[#C09A5B] font-heading uppercase">
+              HUT Lampung Barat-35
+            </div>
           </div>
-          <p className="text-sm md:text-base font-light">
-            {drawMode === "participant"
-              ? "Nomor undian peserta akan diundi secara acak oleh sistem"
-              : "Kupon pekon se-Kabupaten Lampung Barat akan diundi secara acak"}
-          </p>
+
+          {/* Mode Switcher */}
+          <div className="flex bg-black/40 backdrop-blur-md p-1.5 rounded-2xl border border-primary/30 shadow-xl gap-2 z-30">
+            <button
+              disabled={isSpinning}
+              onClick={() => handleModeChange("participant")}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+                drawMode === "participant"
+                  ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
+                  : "text-[#C09A5B] hover:bg-white/5",
+              )}
+            >
+              <UserIcon weight="bold" className="w-4 h-4" />
+              Undian Peserta
+            </button>
+            <button
+              disabled={isSpinning}
+              onClick={() => handleModeChange("pekon")}
+              className={cn(
+                "flex items-center gap-2 px-5 py-2 rounded-xl text-xs md:text-sm font-heading font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed",
+                drawMode === "pekon"
+                  ? "bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black shadow-lg"
+                  : "text-[#C09A5B] hover:bg-white/5",
+              )}
+            >
+              <BuildingsIcon weight="bold" className="w-4 h-4" />
+              Undian Pekon
+            </button>
+          </div>
         </div>
 
-        {/* Winner Announcement or Action Button Area */}
-        <div className="flex flex-col items-center justify-center w-full relative gap-6">
-          {isRevealed &&
-            (drawMode === "participant"
-              ? participantWinnerData || winnerName
-              : pekonWinnerData) && (
-              <div
-                className={`transition-all duration-1000 ease-out transform ${
-                  isRevealed
-                    ? "opacity-100 translate-y-0 scale-100"
-                    : "opacity-0 translate-y-8 scale-95"
-                } text-center bg-black/40 backdrop-blur-md border border-[#C09A5B]/50 px-10 py-6 rounded-2xl shadow-[0_0_40px_rgba(192,154,91,0.2)]`}
-              >
-                {drawMode === "participant" ? (
-                  <>
-                    <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
-                      Selamat Kepada Pemenang
-                    </p>
-                    <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                      {participantWinnerData?.full_name || winnerName}
-                    </h2>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
-                      Selamat Kepada Pekon Pemenang
-                    </p>
-                    <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                      Pekon {pekonWinnerData?.name}
-                    </h2>
-                    <div className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/40 text-primary font-medium text-sm md:text-base">
-                      <MapPinIcon
-                        weight="duotone"
-                        className="w-5 h-5 text-primary inline mr-1.5"
-                      />
-                      Kecamatan {pekonWinnerData?.kecamatan}
-                    </div>
-                  </>
-                )}
+        <div className="flex-1 flex flex-col items-center justify-center relative z-20 w-full pl-0 lg:pl-[30%] pr-0 lg:pr-[5%]">
+          <div className="mb-10 text-center flex flex-col items-center">
+            <h1 className="text-3xl md:text-5xl lg:text-[56px] font-heading text-[#C09A5B] font-normal tracking-[0.15em] mb-4 drop-shadow-lg">
+              {drawMode === "participant"
+                ? "PENGUNDIAN DOORPRIZE PESERTA"
+                : "PENGUNDIAN DOORPRIZE PEKON"}
+            </h1>
+            <div className="flex items-center gap-3 opacity-80">
+              <div className="w-16 md:w-32 h-[1px] bg-gradient-to-r from-transparent to-[#C09A5B]"></div>
+              <div className="w-2 h-2 rotate-45 bg-[#C09A5B]"></div>
+              <div className="w-16 md:w-32 h-[1px] bg-gradient-to-l from-transparent to-[#C09A5B]"></div>
+            </div>
+          </div>
+
+          <div className="flex flex-row justify-center flex-wrap gap-y-3 mb-10 w-full max-w-[900px]">
+            {winnerCode.split("").map((char, index) => (
+              <RollingChar
+                key={index}
+                targetChar={char}
+                isSpinning={isSpinning}
+                hasStarted={hasStarted}
+                stopDelay={index * 1000}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-3 text-white/70 mb-12 font-sans tracking-wide">
+            <div className="w-6 h-6 rounded-full border border-white/50 flex items-center justify-center">
+              <InfoIcon className="w-4 h-4" />
+            </div>
+            <p className="text-sm md:text-base font-light">
+              {drawMode === "participant"
+                ? "Nomor undian peserta akan diundi secara acak oleh sistem"
+                : "Kupon pekon se-Kabupaten Lampung Barat akan diundi secara acak"}
+            </p>
+          </div>
+
+          {/* Winner Announcement or Action Button Area */}
+          <div className="flex flex-col items-center justify-center w-full relative gap-6">
+            {isRevealed &&
+              (drawMode === "participant"
+                ? participantWinnerData || winnerName
+                : pekonWinnerData) && (
+                <div
+                  className={`transition-all duration-1000 ease-out transform ${
+                    isRevealed
+                      ? "opacity-100 translate-y-0 scale-100"
+                      : "opacity-0 translate-y-8 scale-95"
+                  } text-center bg-black/40 backdrop-blur-md border border-[#C09A5B]/50 px-10 py-6 rounded-2xl shadow-[0_0_40px_rgba(192,154,91,0.2)]`}
+                >
+                  {drawMode === "participant" ? (
+                    <>
+                      <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
+                        Selamat Kepada Pemenang
+                      </p>
+                      <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        {participantWinnerData?.full_name || winnerName}
+                      </h2>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-[#C09A5B] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 font-semibold">
+                        Selamat Kepada Pekon Pemenang
+                      </p>
+                      <h2 className="text-3xl md:text-5xl font-black text-white font-heading drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        Pekon {pekonWinnerData?.name}
+                      </h2>
+                      <div className="mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/40 text-primary font-medium text-sm md:text-base">
+                        <MapPinIcon
+                          weight="duotone"
+                          className="w-5 h-5 text-primary inline mr-1.5"
+                        />
+                        Kecamatan {pekonWinnerData?.kecamatan}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+            {errorMsg && !isSpinning && (
+              <div className="text-red-400 text-lg md:text-xl font-medium bg-red-950/40 backdrop-blur-md px-8 py-4 rounded-xl border border-red-500/30">
+                {errorMsg}
               </div>
             )}
 
-          {errorMsg && !isSpinning && (
-            <div className="text-red-400 text-lg md:text-xl font-medium bg-red-950/40 backdrop-blur-md px-8 py-4 rounded-xl border border-red-500/30">
-              {errorMsg}
+            <div className="flex items-center gap-6 mt-2">
+              <Button
+                size="lg"
+                onClick={handleDraw}
+                disabled={isSpinning}
+                className="text-lg md:text-xl h-14 md:h-16 px-10 md:px-16 rounded-xl bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black font-heading font-bold tracking-[0.15em] uppercase border border-[#F2D06B] shadow-[0_8px_20px_rgba(0,0,0,0.5)] hover:from-[#E5C158] hover:to-[#C09A5B] hover:shadow-[0_8px_25px_rgba(192,154,91,0.4)] transition-all hover:-translate-y-1 active:translate-y-1 active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center gap-3"
+              >
+                {!isSpinning && (
+                  <GiftIcon weight="fill" className="w-6 h-6 mb-0.5" />
+                )}
+                {isSpinning
+                  ? "MENGUNDI..."
+                  : hasStarted
+                    ? "UNDI LAGI"
+                    : "MULAI UNDI"}
+              </Button>
             </div>
-          )}
-
-          <div className="flex items-center gap-6 mt-2">
-            <Button
-              size="lg"
-              onClick={handleDraw}
-              disabled={isSpinning}
-              className="text-lg md:text-xl h-14 md:h-16 px-10 md:px-16 rounded-xl bg-gradient-to-b from-[#D4AF37] to-[#B08D28] text-black font-heading font-bold tracking-[0.15em] uppercase border border-[#F2D06B] shadow-[0_8px_20px_rgba(0,0,0,0.5)] hover:from-[#E5C158] hover:to-[#C09A5B] hover:shadow-[0_8px_25px_rgba(192,154,91,0.4)] transition-all hover:-translate-y-1 active:translate-y-1 active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-[0_8px_20px_rgba(0,0,0,0.5)] flex items-center gap-3"
-            >
-              {!isSpinning && (
-                <GiftIcon weight="fill" className="w-6 h-6 mb-0.5" />
-              )}
-              {isSpinning
-                ? "MENGUNDI..."
-                : hasStarted
-                  ? "UNDI LAGI"
-                  : "MULAI UNDI"}
-            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

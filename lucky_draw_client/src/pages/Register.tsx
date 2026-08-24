@@ -281,268 +281,279 @@ export default function Register() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background relative overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
-      <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[120px] pointer-events-none"></div>
+    <>
+      <title>Pendaftaran | Kupon Undian HUT Lampung Barat ke-35</title>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[120px] pointer-events-none"></div>
 
-      <div className="w-full max-w-xl z-10 relative mt-8 mb-16">
-        <div className="text-center mb-10">
-          <img
-            src="/logo_hut_lambar-35.png"
-            alt="HUT Lampung Barat 35"
-            className="w-36 h-auto mx-auto mb-6 drop-shadow-sm"
-          />
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-heading">
-            HUT Lampung Barat ke-35
-          </h1>
-          <p className="text-muted-foreground mt-4 text-lg">
-            Daftar sekarang untuk mendapatkan{" "}
-            <span className="font-semibold text-primary">
-              Kupon Undian Digital
-            </span>
+        <div className="w-full max-w-xl z-10 relative mt-8 mb-16">
+          <div className="text-center mb-10">
+            <img
+              src="/logo_hut_lambar-35.png"
+              alt="HUT Lampung Barat 35"
+              className="w-36 h-auto mx-auto mb-6 drop-shadow-sm"
+            />
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-heading">
+              HUT Lampung Barat ke-35
+            </h1>
+            <p className="text-muted-foreground mt-4 text-lg">
+              Daftar sekarang untuk mendapatkan{" "}
+              <span className="font-semibold text-primary">
+                Kupon Undian Digital
+              </span>
+            </p>
+          </div>
+
+          <Card className="shadow-2xl border-border bg-card rounded-2xl overflow-hidden relative">
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-secondary to-primary"></div>
+
+            <CardHeader className="pt-8 pb-2 text-center">
+              <CardTitle className="font-heading text-2xl text-foreground">
+                Formulir Registrasi
+              </CardTitle>
+              <CardDescription className="text-muted-foreground text-sm mt-1">
+                Mohon isi data diri Anda dengan sebenar-benarnya.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-6 sm:px-8 pb-8 pt-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {errorMsg && (
+                  <div className="p-4 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+                    <WarningCircleIcon
+                      className="w-5 h-5 shrink-0 mt-0.5"
+                      weight="fill"
+                    />
+                    <span className="font-medium leading-relaxed">
+                      {errorMsg}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="full_name"
+                    className="text-foreground font-medium"
+                  >
+                    Nama Lengkap
+                  </Label>
+                  <Input
+                    id="full_name"
+                    placeholder="Sesuai KTP Anda"
+                    className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl"
+                    {...register("full_name")}
+                  />
+                  {errors.full_name && (
+                    <p className="text-sm text-destructive">
+                      {errors.full_name.message as string}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="date_of_birth"
+                    className="text-foreground font-medium"
+                  >
+                    Tanggal Lahir
+                  </Label>
+                  <input type="hidden" {...register("date_of_birth")} />
+                  <Popover>
+                    <PopoverTrigger
+                      render={
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full h-12 bg-background/50 focus:bg-background transition-colors rounded-xl justify-start text-left font-normal border-input hover:bg-background/80",
+                            !watch("date_of_birth") && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {watch("date_of_birth") ? (
+                            format(new Date(watch("date_of_birth")), "PPP", {
+                              locale: dateFnsId,
+                            })
+                          ) : (
+                            <span>Pilih tanggal</span>
+                          )}
+                        </Button>
+                      }
+                    />
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          watch("date_of_birth")
+                            ? new Date(watch("date_of_birth"))
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          setValue(
+                            "date_of_birth",
+                            date ? format(date, "yyyy-MM-dd") : "",
+                            { shouldValidate: true },
+                          );
+                        }}
+                        captionLayout="dropdown"
+                        startMonth={new Date(1900, 0)}
+                        endMonth={new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.date_of_birth && (
+                    <p className="text-sm text-destructive">
+                      {errors.date_of_birth.message as string}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="phone_number"
+                    className="text-foreground font-medium"
+                  >
+                    Nomor WhatsApp / HP
+                  </Label>
+                  <Input
+                    id="phone_number"
+                    placeholder="Contoh: 081234567890"
+                    className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl font-mono text-sm"
+                    {...register("phone_number")}
+                  />
+                  {errors.phone_number && (
+                    <p className="text-sm text-destructive">
+                      {errors.phone_number.message as string}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="alamat"
+                    className="text-foreground font-medium"
+                  >
+                    Alamat (Kelurahan/Pekon)
+                  </Label>
+                  <Input
+                    id="alamat"
+                    placeholder="Masukkan kelurahan atau pekon"
+                    className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl"
+                    {...register("alamat")}
+                  />
+                  {errors.alamat && (
+                    <p className="text-sm text-destructive">
+                      {errors.alamat.message as string}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-3 pt-4 border-t border-border mt-6">
+                  <Label className="text-foreground font-medium block">
+                    Foto Selfie (Opsional)
+                  </Label>
+
+                  {cameraError && (
+                    <p className="text-sm text-destructive mb-2">
+                      {cameraError}
+                    </p>
+                  )}
+
+                  {!cameraActive && !capturedImage && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2 h-14 rounded-xl border-dashed border-2 border-primary/30 text-primary hover:bg-primary/5 hover:text-primary transition-all"
+                      onClick={startCamera}
+                    >
+                      <CameraIcon weight="bold" className="w-5 h-5" />
+                      <span className="font-semibold">
+                        Buka Kamera untuk Selfie
+                      </span>
+                    </Button>
+                  )}
+
+                  {cameraActive && (
+                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center ring-2 ring-primary/20 shadow-inner">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className={
+                          "w-full h-full object-cover transition-transform scale-x-[-1]"
+                        }
+                      ></video>
+
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                        <Button
+                          type="button"
+                          size="icon"
+                          className="h-16 w-16 rounded-full bg-white text-primary hover:bg-zinc-100 hover:scale-105 transition-transform border-4 border-white/20 shadow-2xl"
+                          onClick={capturePhoto}
+                        >
+                          <CameraIcon weight="fill" className="w-7 h-7" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {capturedImage && (
+                    <div className="relative rounded-xl overflow-hidden aspect-video border-2 border-primary/20 shadow-md group">
+                      <img
+                        src={capturedImage}
+                        alt="Selfie KTP"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={retakePhoto}
+                          className="flex items-center gap-2 rounded-full px-6 bg-white text-foreground hover:bg-white/90"
+                        >
+                          <ArrowCounterClockwiseIcon weight="bold" /> Ulangi
+                          Foto
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <canvas ref={canvasRef} className="hidden" />
+
+                  {errors.photo && (
+                    <p className="text-sm text-destructive">
+                      {errors.photo.message as string}
+                    </p>
+                  )}
+                  {!cameraActive && !capturedImage && (
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      Foto ini akan digunakan untuk verifikasi pada saat
+                      pengundian.
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full mt-8 h-14 text-base font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={mutation.isPending || !isEventStarted}
+                >
+                  {!isEventStarted
+                    ? countdownText || "Memuat..."
+                    : mutation.isPending
+                      ? "Sedang Mendaftarkan..."
+                      : "Daftarkan Sekarang"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <p className="text-center text-sm font-medium text-muted-foreground mt-8">
+            &copy; {new Date().getFullYear()} Pemerintah Kabupaten Lampung Barat
           </p>
         </div>
-
-        <Card className="shadow-2xl border-border bg-card rounded-2xl overflow-hidden relative">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-primary via-secondary to-primary"></div>
-
-          <CardHeader className="pt-8 pb-2 text-center">
-            <CardTitle className="font-heading text-2xl text-foreground">
-              Formulir Registrasi
-            </CardTitle>
-            <CardDescription className="text-muted-foreground text-sm mt-1">
-              Mohon isi data diri Anda dengan sebenar-benarnya.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-6 sm:px-8 pb-8 pt-4">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {errorMsg && (
-                <div className="p-4 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
-                  <WarningCircleIcon
-                    className="w-5 h-5 shrink-0 mt-0.5"
-                    weight="fill"
-                  />
-                  <span className="font-medium leading-relaxed">
-                    {errorMsg}
-                  </span>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="full_name"
-                  className="text-foreground font-medium"
-                >
-                  Nama Lengkap
-                </Label>
-                <Input
-                  id="full_name"
-                  placeholder="Sesuai KTP Anda"
-                  className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl"
-                  {...register("full_name")}
-                />
-                {errors.full_name && (
-                  <p className="text-sm text-destructive">
-                    {errors.full_name.message as string}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="date_of_birth"
-                  className="text-foreground font-medium"
-                >
-                  Tanggal Lahir
-                </Label>
-                <input type="hidden" {...register("date_of_birth")} />
-                <Popover>
-                  <PopoverTrigger render={
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full h-12 bg-background/50 focus:bg-background transition-colors rounded-xl justify-start text-left font-normal border-input hover:bg-background/80",
-                        !watch("date_of_birth") && "text-muted-foreground",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {watch("date_of_birth") ? (
-                        format(new Date(watch("date_of_birth")), "PPP", {
-                          locale: dateFnsId,
-                        })
-                      ) : (
-                        <span>Pilih tanggal</span>
-                      )}
-                    </Button>
-                  } />
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={
-                        watch("date_of_birth")
-                          ? new Date(watch("date_of_birth"))
-                          : undefined
-                      }
-                      onSelect={(date) => {
-                        setValue(
-                          "date_of_birth",
-                          date ? format(date, "yyyy-MM-dd") : "",
-                          { shouldValidate: true },
-                        );
-                      }}
-                      captionLayout="dropdown"
-                      startMonth={new Date(1900, 0)}
-                      endMonth={new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
-                {errors.date_of_birth && (
-                  <p className="text-sm text-destructive">
-                    {errors.date_of_birth.message as string}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="phone_number"
-                  className="text-foreground font-medium"
-                >
-                  Nomor WhatsApp / HP
-                </Label>
-                <Input
-                  id="phone_number"
-                  placeholder="Contoh: 081234567890"
-                  className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl font-mono text-sm"
-                  {...register("phone_number")}
-                />
-                {errors.phone_number && (
-                  <p className="text-sm text-destructive">
-                    {errors.phone_number.message as string}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="alamat" className="text-foreground font-medium">
-                  Alamat (Kelurahan/Pekon)
-                </Label>
-                <Input
-                  id="alamat"
-                  placeholder="Masukkan kelurahan atau pekon"
-                  className="h-12 bg-background/50 focus:bg-background transition-colors rounded-xl"
-                  {...register("alamat")}
-                />
-                {errors.alamat && (
-                  <p className="text-sm text-destructive">
-                    {errors.alamat.message as string}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-3 pt-4 border-t border-border mt-6">
-                <Label className="text-foreground font-medium block">
-                  Foto Selfie (Opsional)
-                </Label>
-
-                {cameraError && (
-                  <p className="text-sm text-destructive mb-2">{cameraError}</p>
-                )}
-
-                {!cameraActive && !capturedImage && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2 h-14 rounded-xl border-dashed border-2 border-primary/30 text-primary hover:bg-primary/5 hover:text-primary transition-all"
-                    onClick={startCamera}
-                  >
-                    <CameraIcon weight="bold" className="w-5 h-5" />
-                    <span className="font-semibold">
-                      Buka Kamera untuk Selfie
-                    </span>
-                  </Button>
-                )}
-
-                {cameraActive && (
-                  <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center ring-2 ring-primary/20 shadow-inner">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className={
-                        "w-full h-full object-cover transition-transform scale-x-[-1]"
-                      }
-                    ></video>
-
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                      <Button
-                        type="button"
-                        size="icon"
-                        className="h-16 w-16 rounded-full bg-white text-primary hover:bg-zinc-100 hover:scale-105 transition-transform border-4 border-white/20 shadow-2xl"
-                        onClick={capturePhoto}
-                      >
-                        <CameraIcon weight="fill" className="w-7 h-7" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {capturedImage && (
-                  <div className="relative rounded-xl overflow-hidden aspect-video border-2 border-primary/20 shadow-md group">
-                    <img
-                      src={capturedImage}
-                      alt="Selfie KTP"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={retakePhoto}
-                        className="flex items-center gap-2 rounded-full px-6 bg-white text-foreground hover:bg-white/90"
-                      >
-                        <ArrowCounterClockwiseIcon weight="bold" /> Ulangi Foto
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <canvas ref={canvasRef} className="hidden" />
-
-                {errors.photo && (
-                  <p className="text-sm text-destructive">
-                    {errors.photo.message as string}
-                  </p>
-                )}
-                {!cameraActive && !capturedImage && (
-                  <p className="text-xs text-muted-foreground text-center mt-2">
-                    Foto ini akan digunakan untuk verifikasi pada saat
-                    pengundian.
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full mt-8 h-14 text-base font-bold rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={mutation.isPending || !isEventStarted}
-              >
-                {!isEventStarted
-                  ? countdownText || "Memuat..."
-                  : mutation.isPending
-                    ? "Sedang Mendaftarkan..."
-                    : "Daftarkan Sekarang"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <p className="text-center text-sm font-medium text-muted-foreground mt-8">
-          &copy; {new Date().getFullYear()} Pemerintah Kabupaten Lampung Barat
-        </p>
       </div>
-    </div>
+    </>
   );
 }
