@@ -21,10 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from lucky_draw_api.config import settings
 from lucky_draw_api.database import get_db
-from lucky_draw_api.models import Participant
-from lucky_draw_api.schemas import ParticipantCreate, ParticipantResponse
+from lucky_draw_api.models import Participant, Pekon
+from lucky_draw_api.schemas import ParticipantCreate, ParticipantResponse, PekonResponse
 
 router = APIRouter(prefix="/api/participants", tags=["participants"])
+pekonRouter = APIRouter(prefix="/api/pekon", tags=["pekon"])
 
 
 class UploadURLResponse(BaseModel):
@@ -177,6 +178,47 @@ async def draw_winner(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No eligible participants left",
+        )
+
+    winner.has_won = True
+    await db.commit()
+    await db.refresh(winner)
+    return winner
+
+
+@pekonRouter.get("", response_model=list[PekonResponse])
+async def list_pekons(
+    winners_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Pekon)
+    if winners_only:
+        query = query.where(Pekon.has_won == True)
+    query = query.order_by(Pekon.created_at.desc())
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+@pekonRouter.api_route("/draw", methods=["GET", "POST"], response_model=PekonResponse)
+async def draw_pekon(
+    db: AsyncSession = Depends(get_db),
+):
+    query = select(Pekon.id).where(Pekon.has_won == False)
+    result = await db.execute(query)
+    eligible_ids = result.scalars().all()
+
+    if not eligible_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No eligible pekons left",
+        )
+
+    winner_id = random.choice(eligible_ids)
+    winner = await db.get(Pekon, winner_id)
+    if not winner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No eligible pekons left",
         )
 
     winner.has_won = True
