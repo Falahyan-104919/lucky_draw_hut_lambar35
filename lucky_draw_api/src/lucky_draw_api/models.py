@@ -11,11 +11,16 @@ class Base(DeclarativeBase):
 
 import uuid
 
+
 class Participant(Base):
     __tablename__ = "participants"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    ticket_sequence: Mapped[int] = mapped_column(autoincrement=True, unique=True, index=True)
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    ticket_sequence: Mapped[int] = mapped_column(
+        autoincrement=True, unique=True, index=True
+    )
     full_name: Mapped[str] = mapped_column(String(100))
     alamat: Mapped[str] = mapped_column(String(255))
     phone_number: Mapped[str] = mapped_column(String(20))
@@ -27,6 +32,27 @@ class Participant(Base):
     photo_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     has_won: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default=false()
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(ZoneInfo("Asia/Jakarta")),
+        server_default=func.now(),
+    )
+
+
+class Pekon(Base):
+    __tablename__ = "pekon"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    kecamatan: Mapped[str] = mapped_column(String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    has_won: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false()
+    )
+    coupon_code: Mapped[str | None] = mapped_column(
+        String(20), unique=True, index=True, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

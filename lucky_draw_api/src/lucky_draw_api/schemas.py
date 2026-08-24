@@ -25,3 +25,14 @@ class ParticipantResponse(BaseModel):
     photo_path: str | None
     has_won: bool
     created_at: datetime
+
+
+class PekonResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    kecamatan: str
+    name: str
+    has_won: bool
+    coupon_code: str | None
+    created_at: datetime
