@@ -100,7 +100,8 @@ export function PhotoField({ setValue, error }: PhotoFieldProps) {
   return (
     <div className="space-y-3 pt-4 border-t border-border mt-6">
       <Label className="text-foreground font-medium block">
-        Foto Selfie di Lokasi<span className="text-destructive">*</span>
+        Foto Selfie di Lokasi Kegiatan
+        <span className="text-destructive">*</span>
       </Label>
 
       {cameraError && (
