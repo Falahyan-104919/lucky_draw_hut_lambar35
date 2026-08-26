@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { CheckCircle, DownloadSimple, Spinner } from "@phosphor-icons/react";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 export default function Ticket() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialParticipant = location.state?.participant;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["participant", id],
@@ -14,15 +16,34 @@ export default function Ticket() {
       const response = await axios.get(`/api/participants/${id}`);
       return response.data;
     },
+    initialData: initialParticipant,
+    retry: (failureCount, error: any) => {
+      // If 404, retry up to 6 times (waiting for worker to commit)
+      if (error?.response?.status === 404 && failureCount < 6) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: 1000,
     enabled: !!id,
   });
 
   if (isLoading) {
     return (
       <>
-        <title>Memuat Tiket... | Lucky Draw HUT Lambar</title>
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <Spinner className="w-8 h-8 animate-spin text-primary" />
+        <title>Menyiapkan Tiket... | Kupon Undian HUT Lambar</title>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background relative overflow-hidden">
+          <div className="w-full max-w-sm z-10 flex flex-col items-center text-center p-8 bg-card rounded-2xl border-2 border-primary/20 shadow-xl">
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-5 ring-4 ring-primary/5">
+              <Spinner className="w-8 h-8 animate-spin text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground font-heading mb-2">
+              Menyiapkan Tiket
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Mohon tunggu sebentar, kupon undian digital Anda sedang diproses oleh sistem...
+            </p>
+          </div>
         </div>
       </>
     );

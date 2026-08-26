@@ -123,7 +123,10 @@ async def register_participant(
             routing_key="registrations_queue",
         )
 
-    # 5. Return success instantly (Status 202 Accepted)
+    # 5. Cache temporarily in Redis (5 min) for instant read-after-write
+    await redis.set(f"participant:{participant_id}", json.dumps(payload), ex=300)
+
+    # 6. Return success instantly (Status 202 Accepted)
     return payload
 
 
@@ -147,8 +150,16 @@ async def list_participants(
 @router.get("/{participant_id}", response_model=ParticipantResponse)
 async def get_participant(
     participant_id: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    # 1. Check Redis cache first (instant response if recently registered)
+    redis = request.app.state.redis
+    cached = await redis.get(f"participant:{participant_id}")
+    if cached:
+        return json.loads(cached)
+
+    # 2. Check MySQL database
     participant = await db.get(Participant, participant_id)
     if not participant:
         raise HTTPException(

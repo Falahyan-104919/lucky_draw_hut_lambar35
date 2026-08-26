@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 
 import aio_pika
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -38,17 +39,64 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
                 logger.info(f"Inserted participant {participant.unique_id}")
                 await message.ack()
                 
-            except IntegrityError:
+            except IntegrityError as e:
                 await session.rollback()
-                logger.warning(f"Participant {payload['unique_id']} already exists in DB.")
-                await message.ack() # Ack it anyway since we already rejected it via Redis in the API
+                err_str = str(e).lower()
+                if "unique_id" in err_str:
+                    logger.warning(
+                        f"Participant {payload['unique_id']} already exists in DB."
+                    )
+                    await message.ack()
+                elif "ticket_sequence" in err_str or "coupon_code" in err_str:
+                    logger.warning(
+                        f"Sequence collision for {payload['unique_id']} (seq {payload.get('ticket_sequence')}). Resolving next available sequence..."
+                    )
+                    result = await session.execute(
+                        text("SELECT COALESCE(MAX(ticket_sequence), 0) FROM participants")
+                    )
+                    new_seq = (result.scalar() or 0) + 1
+                    participant.ticket_sequence = new_seq
+                    participant.coupon_code = f"LB35-{new_seq:06d}"
+                    session.add(participant)
+                    await session.commit()
+                    logger.info(
+                        f"Successfully recovered and inserted participant {participant.unique_id} with seq {new_seq} ({participant.coupon_code})"
+                    )
+                    await message.ack()
+                else:
+                    logger.error(
+                        f"IntegrityError inserting participant {payload.get('unique_id')}: {e}"
+                    )
+                    await message.ack()
             except Exception as e:
                 logger.error(f"Error inserting participant: {e}")
                 await message.nack(requeue=True)
 
 
+async def get_connection(
+    max_retries: int = 30, retry_interval: float = 2.0
+) -> aio_pika.abc.AbstractRobustConnection:
+    """Connect to RabbitMQ with automatic retries for initial startup."""
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info(f"Connecting to RabbitMQ (attempt {attempt}/{max_retries})...")
+            connection = await aio_pika.connect_robust(settings.RABBITMQ_URL)
+            logger.info("Successfully connected to RabbitMQ.")
+            return connection
+        except (aio_pika.exceptions.AMQPConnectionError, ConnectionError, OSError) as e:
+            if attempt == max_retries:
+                logger.error(
+                    f"Could not connect to RabbitMQ after {max_retries} attempts: {e}"
+                )
+                raise
+            logger.warning(
+                f"RabbitMQ not ready yet ({e}). Retrying in {retry_interval}s..."
+            )
+            await asyncio.sleep(retry_interval)
+
+
 async def main():
-    connection = await aio_pika.connect_robust(settings.RABBITMQ_URL)
+    connection = await get_connection()
     
     async with connection:
         channel = await connection.channel()

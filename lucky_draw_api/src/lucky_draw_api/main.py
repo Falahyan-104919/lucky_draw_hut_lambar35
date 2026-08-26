@@ -11,14 +11,37 @@ from lucky_draw_api.config import settings
 from lucky_draw_api.routes import pekonRouter
 from lucky_draw_api.routes import router as participants_router
 
+from sqlalchemy import text
+from lucky_draw_api.database import AsyncSessionLocal
+
 # Global boto3 session
 boto_session = aioboto3.Session()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Initialize Redis Pool
+    # 1. Initialize Redis Pool & Sync with DB
     app.state.redis = redis.from_url(settings.REDIS_URL)
+
+    try:
+        async with AsyncSessionLocal() as db:
+            # Sync max sequence counter to avoid sequence collisions
+            result = await db.execute(
+                text("SELECT COALESCE(MAX(ticket_sequence), 0) FROM participants")
+            )
+            max_seq = result.scalar() or 0
+            current_seq_str = await app.state.redis.get("ticket_sequence_counter")
+            current_seq = int(current_seq_str) if current_seq_str else 0
+            if max_seq > current_seq:
+                await app.state.redis.set("ticket_sequence_counter", max_seq)
+
+            # Sync registered unique IDs to Redis set for instant deduplication
+            result = await db.execute(text("SELECT unique_id FROM participants"))
+            unique_ids = [r[0] for r in result.fetchall() if r[0]]
+            if unique_ids:
+                await app.state.redis.sadd("registered_unique_ids", *unique_ids)
+    except Exception as e:
+        print(f"Warning: Failed to sync Redis with DB on startup: {e}")
 
     # 2. Ensure MinIO Bucket Exists
     async with boto_session.client(
@@ -41,16 +64,27 @@ async def lifespan(app: FastAPI):
             )
             await s3.put_bucket_policy(Bucket=settings.MINIO_BUCKET, Policy=policy)
 
-    # 3. Initialize RabbitMQ Connection
-    app.state.rmq_connection = await aio_pika.connect_robust(settings.RABBITMQ_URL)
+    # 3. Initialize RabbitMQ Connection with retry
+    for attempt in range(1, 31):
+        try:
+            app.state.rmq_connection = await aio_pika.connect_robust(
+                settings.RABBITMQ_URL
+            )
+            break
+        except (
+            aio_pika.exceptions.AMQPConnectionError,
+            ConnectionError,
+            OSError,
+        ):
+            if attempt == 30:
+                raise
+            import asyncio
+            await asyncio.sleep(2)
 
-    # Create the channel and queue to ensure they exist
-    async with app.state.rmq_connection:
-        channel = await app.state.rmq_connection.channel()
-        await channel.declare_queue("registrations_queue", durable=True)
-
-    # Reopen connection for the app to use
-    app.state.rmq_connection = await aio_pika.connect_robust(settings.RABBITMQ_URL)
+    # Ensure queue exists without prematurely closing connection
+    channel = await app.state.rmq_connection.channel()
+    await channel.declare_queue("registrations_queue", durable=True)
+    await channel.close()
 
     yield
 

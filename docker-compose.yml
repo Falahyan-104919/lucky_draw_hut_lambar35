@@ -19,9 +19,12 @@ services:
       # CRITICAL: This must be the public domain Nginx gives to MinIO
       - MINIO_PUBLIC_ENDPOINT=${MINIO_PUBLIC_ENDPOINT}
     depends_on:
-      - redis
-      - rabbitmq
-      - minio
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - prod-net
 
@@ -36,7 +39,8 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     deploy:
       replicas: 3 # Instantly scale to 3 workers to drain the queue faster
     networks:
@@ -76,6 +80,12 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
