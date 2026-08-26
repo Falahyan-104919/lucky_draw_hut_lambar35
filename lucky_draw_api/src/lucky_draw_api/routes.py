@@ -16,7 +16,7 @@ from fastapi import (
     status,
 )
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from lucky_draw_api.config import settings
@@ -26,6 +26,10 @@ from lucky_draw_api.schemas import ParticipantCreate, ParticipantResponse, Pekon
 
 router = APIRouter(prefix="/api/participants", tags=["participants"])
 pekonRouter = APIRouter(prefix="/api/pekon", tags=["pekon"])
+
+
+class ParticipantCountResponse(BaseModel):
+    total: int
 
 
 class UploadURLResponse(BaseModel):
@@ -145,6 +149,21 @@ async def list_participants(
     result = await db.execute(query)
     participants = result.scalars().all()
     return participants
+
+
+@router.get("/count", response_model=ParticipantCountResponse)
+async def get_participant_count(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    redis = request.app.state.redis
+    cached_seq = await redis.get("ticket_sequence_counter")
+    if cached_seq:
+        return {"total": int(cached_seq)}
+
+    result = await db.execute(select(func.count(Participant.id)))
+    total = result.scalar() or 0
+    return {"total": total}
 
 
 @router.get("/{participant_id}", response_model=ParticipantResponse)

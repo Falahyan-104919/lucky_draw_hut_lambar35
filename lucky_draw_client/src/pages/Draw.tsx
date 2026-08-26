@@ -28,6 +28,7 @@ import {
   LockKeyIcon,
   GiftIcon,
   BuildingsIcon,
+  UsersIcon,
   SpeakerHighIcon,
   SpeakerSlashIcon,
 } from "@phosphor-icons/react";
@@ -522,6 +523,21 @@ export default function Draw() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
 
+  // Live telemetry: total registered participants count
+  const { data: countData } = useQuery<{ total: number }>({
+    queryKey: ["participants", "count"],
+    queryFn: async () => {
+      const response = await axios.get<{ total: number }>(
+        "/api/participants/count",
+      );
+      return response.data;
+    },
+    refetchInterval: 10000,
+    enabled: isAuthenticated,
+  });
+
+  const totalParticipants = countData?.total;
+
   const triggerConfetti = () => {
     confetti({
       particleCount: 150,
@@ -792,8 +808,30 @@ export default function Draw() {
             </div>
           </div>
 
-          {/* Mode Switcher & Sound Toggle */}
+          {/* Mode Switcher, Telemetry & Sound Toggle */}
           <div className="flex items-center gap-3">
+            {/* Live Participant Telemetry Pill */}
+            <div
+              className="flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-2xl bg-black/40 border border-[#D4AF37]/35 backdrop-blur-md shadow-xl text-[#F8F5EF] select-none"
+              title="Total peserta terdaftar saat ini (sinkronisasi live)"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+              </span>
+              <UsersIcon weight="duotone" className="w-4 h-4 text-[#D4AF37]" />
+              <div className="flex items-baseline gap-1.5">
+                <span className="hidden sm:inline text-[11px] uppercase tracking-[0.15em] text-[#C09A5B]/85 font-heading font-semibold">
+                  Total Peserta:
+                </span>
+                <span className="text-xs sm:text-sm font-black font-sans text-white tabular-nums tracking-wide">
+                  {totalParticipants !== undefined
+                    ? totalParticipants.toLocaleString("id-ID")
+                    : "..."}
+                </span>
+              </div>
+            </div>
+
             <div className="flex bg-black/40 backdrop-blur-md p-1 rounded-2xl border border-primary/30 shadow-xl gap-1.5">
               <button
                 disabled={isSpinning}
