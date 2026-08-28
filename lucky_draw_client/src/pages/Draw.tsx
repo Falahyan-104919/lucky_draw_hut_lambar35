@@ -31,6 +31,8 @@ import {
   UsersIcon,
   SpeakerHighIcon,
   SpeakerSlashIcon,
+  ArrowsOutIcon,
+  ArrowsInIcon,
 } from "@phosphor-icons/react";
 
 import { motion, useAnimation } from "framer-motion";
@@ -522,6 +524,32 @@ export default function Draw() {
   const [winnerName, setWinnerName] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(
+    () => typeof document !== "undefined" && !!document.fullscreenElement,
+  );
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error("Failed to toggle fullscreen:", err);
+    }
+  };
 
   // Live telemetry: total registered participants count
   const { data: countData } = useQuery<{ total: number }>({
@@ -877,6 +905,25 @@ export default function Draw() {
                 <SpeakerSlashIcon weight="bold" className="w-5 h-5" />
               ) : (
                 <SpeakerHighIcon weight="bold" className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Keluar Layar Penuh" : "Layar Penuh"}
+              aria-label={isFullscreen ? "Keluar Layar Penuh" : "Layar Penuh"}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-2xl border transition-all backdrop-blur-md shadow-xl cursor-pointer",
+                isFullscreen
+                  ? "bg-[#D4AF37]/20 border-[#D4AF37] text-[#F2D06B] hover:bg-[#D4AF37]/30"
+                  : "bg-black/40 border-[#C09A5B]/40 text-[#C09A5B] hover:bg-white/5 hover:border-[#C09A5B]/70",
+              )}
+            >
+              {isFullscreen ? (
+                <ArrowsInIcon weight="bold" className="w-5 h-5" />
+              ) : (
+                <ArrowsOutIcon weight="bold" className="w-5 h-5" />
               )}
             </button>
           </div>
