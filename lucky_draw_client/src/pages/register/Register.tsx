@@ -50,10 +50,6 @@ export default function Register() {
     <>
       <title>Pendaftaran | Kupon Undian HUT Lampung Barat ke-35</title>
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background relative overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
-        <div className="absolute top-[40%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary/5 blur-[120px] pointer-events-none"></div>
-
         <div className="w-full max-w-xl z-10 relative mt-8 mb-16">
           <div className="text-center mb-10">
             <img
@@ -61,8 +57,11 @@ export default function Register() {
               alt="HUT Lampung Barat 35"
               className="w-36 h-auto mx-auto mb-6 drop-shadow-sm"
             />
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground font-heading">
-              HUT Lampung Barat ke-35
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground font-heading">
+              Festival Kreasi GTK
+            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
+              se-Provinsi Lampung
             </h1>
             <p className="text-muted-foreground mt-4 text-lg">
               Daftar sekarang untuk mendapatkan{" "}
